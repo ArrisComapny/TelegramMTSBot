@@ -5,5 +5,4 @@ other_router = Router(name="admin")
 
 @other_router.message(CommandStart())
 async def start_command(message: types.Message):
-    await message.answer(f"Ваш ID: {message.from_user.id}\n"
-                         f"ID чата: {message.chat.id}")
+    await message.answer(f"Ваш ID: {message.from_user.id}")
