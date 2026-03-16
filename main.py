@@ -30,7 +30,7 @@ async def main() -> None:
     session = AiohttpSession(proxy=PROXY)
 
     # Инициализация бота и диспетчера
-    bot = Bot(token=TOKEN, default=(DefaultBotProperties(parse_mode=ParseMode.HTML)))
+    bot = Bot(token=TOKEN, session=session, default=(DefaultBotProperties(parse_mode=ParseMode.HTML)))
     dp = Dispatcher()
 
     db = Database()
