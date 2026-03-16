@@ -7,8 +7,9 @@ import database.models # импортируем модели, чтобы они 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
 
-from config import TOKEN
+from config import TOKEN, PROXY
 from routers.admin import admin_router
 from routers.other import other_router
 from database.db import Database, Base
@@ -25,6 +26,8 @@ async def main() -> None:
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
         stream=sys.stdout,
     )
+
+    session = AiohttpSession(proxy=PROXY)
 
     # Инициализация бота и диспетчера
     bot = Bot(token=TOKEN, default=(DefaultBotProperties(parse_mode=ParseMode.HTML)))
