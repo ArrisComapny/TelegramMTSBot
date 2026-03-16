@@ -42,10 +42,14 @@ async def main() -> None:
     dp.include_router(admin_router)
     dp.include_router(other_router)
 
-    await bot.delete_webhook(drop_pending_updates=True)
+    me = await bot.get_me()
+    logging.info("Bot connected: %s", me.username)
+
+    await bot.delete_webhook(drop_pending_updates=False)
     try:
         await dp.start_polling(bot)
     finally:
+        await bot.session.close()
         await db.disconnect()
 
 if __name__ == "__main__":
