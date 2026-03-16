@@ -37,7 +37,7 @@ async def main() -> None:
     await db.connect()
     await init_db(db)
 
-    # dp.update.outer_middleware(DbSessionMiddleware(db))
+    dp.update.outer_middleware(DbSessionMiddleware(db))
 
     dp.include_router(admin_router)
     dp.include_router(other_router)
