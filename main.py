@@ -45,7 +45,7 @@ async def main() -> None:
     me = await bot.get_me()
     logging.info("Bot connected: %s", me.username)
 
-    await bot.delete_webhook(drop_pending_updates=False)
+    await bot.delete_webhook(drop_pending_updates=True)
     try:
         await dp.start_polling(bot, polling_timeout=10)
     finally:
