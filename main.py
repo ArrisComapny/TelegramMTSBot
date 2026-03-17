@@ -33,6 +33,9 @@ async def main() -> None:
     bot = Bot(token=TOKEN, session=session, default=(DefaultBotProperties(parse_mode=ParseMode.HTML)))
     dp = Dispatcher()
 
+    me = await bot.get_me()
+    logging.info("Bot connected: %s", me.username)
+
     db = Database()
     await db.connect()
     await init_db(db)
