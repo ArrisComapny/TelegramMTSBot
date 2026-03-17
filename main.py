@@ -33,9 +33,6 @@ async def main() -> None:
     bot = Bot(token=TOKEN, session=session, default=(DefaultBotProperties(parse_mode=ParseMode.HTML)))
     dp = Dispatcher()
 
-    me = await bot.get_me()
-    logging.info("Bot connected: %s", me.username)
-
     db = Database()
     await db.connect()
     await init_db(db)
@@ -45,12 +42,8 @@ async def main() -> None:
     dp.include_router(admin_router)
     dp.include_router(other_router)
 
-    me = await bot.get_me()
-    logging.info("Bot connected: %s", me.username)
-
     await bot.delete_webhook(drop_pending_updates=True)
     try:
-        logging.info("START POLLING")
         await dp.start_polling(bot, polling_timeout=10)
     finally:
         await bot.session.close()
