@@ -401,9 +401,9 @@ async def personnel_list_relate_mts_page_callback(callback: types.CallbackQuery,
     mts_list = [p.phone for p in phones if p.phone not in employee_mts_list]
 
     page = int(callback.data.split(":")[-2])
-    await callback.message.edit_reply_markup(reply_markup=get_personnel_list_mts_keyboard(tg_id=tg_id,
-                                                                                          mts_list=mts_list,
-                                                                                          page=page))
+    await callback.message.edit_reply_markup(reply_markup=get_relate_list_mts_keyboard(tg_id=tg_id,
+                                                                                       mts_list=mts_list,
+                                                                                       page=page))
     await callback.answer()
 
 
