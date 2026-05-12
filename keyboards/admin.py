@@ -206,7 +206,7 @@ def get_personnel_list_mts_keyboard(tg_id: str, mts_list: list[str], page: int =
             nav_row.append(InlineKeyboardButton(text=" ", callback_data=f"{PM_PREFIX}:noop"))
 
         if page < total_pages - 1:
-            nav_row.append(InlineKeyboardButton(text="▶️", callback_data=f"{PM_PREFIX}:page:{page + 1}"))
+            nav_row.append(InlineKeyboardButton(text="▶️", callback_data=f"{PM_PREFIX}:page:{page + 1}:{tg_id}"))
         else:
             nav_row.append(InlineKeyboardButton(text=" ", callback_data=f"{PM_PREFIX}:noop"))
 
@@ -246,7 +246,7 @@ def get_relate_list_mts_keyboard(tg_id: str, mts_list: list[str], page: int = 0)
             nav_row.append(InlineKeyboardButton(text=" ", callback_data=f"{PMA_PREFIX}:noop"))
 
         if page < total_pages - 1:
-            nav_row.append(InlineKeyboardButton(text="▶️", callback_data=f"{PMA_PREFIX}:page:{page + 1}"))
+            nav_row.append(InlineKeyboardButton(text="▶️", callback_data=f"{PMA_PREFIX}:page:{page + 1}:{tg_id}"))
         else:
             nav_row.append(InlineKeyboardButton(text=" ", callback_data=f"{PMA_PREFIX}:noop"))
 
