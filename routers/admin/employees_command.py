@@ -235,6 +235,42 @@ async def personnel_list_select_related_mts_callback(callback: types.CallbackQue
     await callback.answer()
 
 
+async def _render_employee_marketplaces(callback: types.CallbackQuery, session: AsyncSession, tg_id: str):
+    """Экран «Доступ МП»: какие площадки получает сотрудник."""
+    employee = await session.get(Employee, tg_id)
+    if not employee:
+        await callback.message.answer("Сотрудник не найден")
+        await personnel_list_callback(callback=callback, session=session)
+        return
+
+    text = (
+        f"📦 <b>Доступ МП</b>\n\n"
+        f"Сотрудник: <b>{employee.full_name}</b>\n"
+        f"ID: <code>{employee.tg_user_id}</code>\n\n"
+        f"Отметьте, сообщения каких площадок он получает:"
+    )
+    await callback.message.edit_text(text, reply_markup=get_employee_marketplaces_keyboard(employee))
+    await callback.answer()
+
+
+@admin_router.callback_query(F.data.startswith("empmk_menu:"), StateFilter(None))
+async def employee_marketplaces_menu_callback(callback: types.CallbackQuery, session: AsyncSession):
+    tg_id = callback.data.split(":")[-1]
+    await _render_employee_marketplaces(callback, session, tg_id)
+
+
+@admin_router.callback_query(F.data.startswith("empmk:"), StateFilter(None))
+async def employee_marketplace_toggle_callback(callback: types.CallbackQuery, session: AsyncSession):
+    """Тоггл галочки маркетплейса на экране «Доступ МП»."""
+    _, col, tg_id = callback.data.split(":")
+    if col in ("wb", "ozon", "yandex", "mvideo"):
+        employee = await session.get(Employee, tg_id)
+        if employee:
+            setattr(employee, col, not getattr(employee, col))
+            await session.flush()
+    await _render_employee_marketplaces(callback, session, tg_id)
+
+
 @admin_router.callback_query(F.data.startswith("unlink:"), StateFilter(None)    )
 async def personnel_list_select_related_mts_back_callback(callback: types.CallbackQuery, state: FSMContext,
                                                           session: AsyncSession):

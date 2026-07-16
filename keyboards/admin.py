@@ -7,11 +7,13 @@ CB_PREFIX = "pers"
 MTS_PREFIX = "numbers"
 PM_PREFIX = "mts_pers"
 PMA_PREFIX  = "mts_add_pers"
+GETCODE_PREFIX = "getcode"
 
 ROLE = {
     "senior": "Старший менеджер",
     "assistant": "Помощник старшего менеджера",
-    "manager": "Младший менеджер"
+    "manager": "Младший менеджер",
+    "admin": "Админ",
 }
 
 STATUS_EMPLOYEE = {
@@ -19,12 +21,73 @@ STATUS_EMPLOYEE = {
     "blocked": "Заблокирован"
 }
 
-def get_admin_keyboard() -> InlineKeyboardMarkup:
+# Площадки-галочки на привязке номера: (колонка в БД, подпись)
+MTS_MARKETPLACES = [
+    ("wb", "WB"),
+    ("ozon", "Ozon"),
+    ("yandex", "Yandex"),
+    ("mvideo", "МВидео"),
+]
+
+def get_admin_keyboard(has_code_access: bool = False) -> InlineKeyboardMarkup:
     keyboard = [
         [
             InlineKeyboardButton(text="👨‍💼 Персонал", callback_data="personnel"),
             InlineKeyboardButton(text="📞 Номера MTS", callback_data="mts_numbers"),
-        ]
+        ],
+    ]
+
+    # «Получить код OZON» — тем, у кого есть доступ к Ozon-сообщениям (галочка Ozon)
+    if has_code_access:
+        keyboard.append([InlineKeyboardButton(text="🔑 Получить код OZON", callback_data="get_code")])
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+def get_user_code_menu_keyboard() -> InlineKeyboardMarkup:
+    keyboard = [
+        [InlineKeyboardButton(text="🔑 Получить код OZON", callback_data="get_code")],
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+def get_code_shops_keyboard(mails: list[str], page: int = 0) -> InlineKeyboardMarkup:
+    total = len(mails)
+    total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+    page = max(0, min(page, total_pages - 1))
+
+    start = page * PAGE_SIZE
+    end = start + PAGE_SIZE
+    slice_ = mails[start:end]
+
+    keyboard = []
+    for mail in slice_:
+        keyboard.append([InlineKeyboardButton(text=mail, callback_data=f"{GETCODE_PREFIX}:select:{mail}")])
+
+    if not total:
+        keyboard.append([InlineKeyboardButton(text="Нет магазинов", callback_data=f"{GETCODE_PREFIX}:noop")])
+
+    if total_pages > 1:
+        nav_row = []
+        if page > 0:
+            nav_row.append(InlineKeyboardButton(text="◀️", callback_data=f"{GETCODE_PREFIX}:page:{page - 1}"))
+        else:
+            nav_row.append(InlineKeyboardButton(text=" ", callback_data=f"{GETCODE_PREFIX}:noop"))
+
+        if page < total_pages - 1:
+            nav_row.append(InlineKeyboardButton(text="▶️", callback_data=f"{GETCODE_PREFIX}:page:{page + 1}"))
+        else:
+            nav_row.append(InlineKeyboardButton(text=" ", callback_data=f"{GETCODE_PREFIX}:noop"))
+
+        keyboard.append(nav_row)
+        keyboard.append([InlineKeyboardButton(text=f"{page+1}/{total_pages}", callback_data=f"{GETCODE_PREFIX}:noop")])
+
+    keyboard.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="code_menu")])
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+def get_code_result_keyboard() -> InlineKeyboardMarkup:
+    keyboard = [
+        [InlineKeyboardButton(text="⬅️ К списку магазинов", callback_data="get_code")],
+        [InlineKeyboardButton(text="🏠 В меню", callback_data="code_menu")],
     ]
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
@@ -149,16 +212,30 @@ def get_personnel_employee_keyboard(employee: Employee) -> InlineKeyboardMarkup:
     else:
         text_status = "Разблокировать"
         change_status = "works"
+
     keyboard = [
         [InlineKeyboardButton(text="Сменить ID", callback_data=f"change_tg_id:{employee.tg_user_id}")],
         [InlineKeyboardButton(text="Сменить Имя", callback_data=f"change_fullname:{employee.tg_user_id}")],
         [InlineKeyboardButton(text="Сменить Должность", callback_data=f"change_role:{employee.tg_user_id}")],
+        [InlineKeyboardButton(text="Доступ МП", callback_data=f"empmk_menu:{employee.tg_user_id}")],
         [InlineKeyboardButton(text="Связанные номера", callback_data=f"related_mts:{employee.tg_user_id}")],
         [InlineKeyboardButton(text=text_status, callback_data=f"change_status:{change_status}:{employee.tg_user_id}")],
         [InlineKeyboardButton(text="Удалить", callback_data=f"delete_pers:{employee.tg_user_id}")],
         [InlineKeyboardButton(text="⬅️ Назад", callback_data=f"personnel_list_select_back")]
     ]
 
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def get_employee_marketplaces_keyboard(employee: Employee) -> InlineKeyboardMarkup:
+    """Экран «Доступ МП»: галочки площадок — каждая отдельной строкой."""
+    keyboard = []
+    for col, label in MTS_MARKETPLACES:
+        mark = "✅" if getattr(employee, col, False) else "⬜"
+        keyboard.append([InlineKeyboardButton(text=f"{mark} {label}",
+                                              callback_data=f"empmk:{col}:{employee.tg_user_id}")])
+
+    keyboard.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=f"{CB_PREFIX}:select:{employee.tg_user_id}")])
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 def get_change_employee_keyboard(tg_id: str, final: bool = False) -> InlineKeyboardMarkup:

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy import String, Column, ForeignKey
+from sqlalchemy import String, Column, ForeignKey, Boolean
 
 from .db import Base
 
@@ -20,6 +20,13 @@ class Employee(Base):
     role = Column(String(length=50), default="manager", nullable=False)
     status = Column(String(length=50), default="works", nullable=False)
 
+    # Галочки: сообщения каких площадок сотрудник получает (глобально, по всем номерам)
+    # Галочка ozon заодно даёт доступ к «Получить код OZON»
+    wb = Column(Boolean, default=False, nullable=False)
+    ozon = Column(Boolean, default=False, nullable=False)
+    yandex = Column(Boolean, default=False, nullable=False)
+    mvideo = Column(Boolean, default=False, nullable=False)
+
     mts_links = relationship("EmployeeNumber", back_populates="employee", cascade="all, delete-orphan", passive_deletes=True)
     numbers = relationship("MTSNumber", secondary="employee_mtsnumbers", viewonly=True)
 
@@ -32,3 +39,18 @@ class MTSNumber(Base):
 
     employee_links = relationship("EmployeeNumber", back_populates="mts_number", cascade="all, delete-orphan", passive_deletes=True)
     employees = relationship("Employee", secondary="employee_mtsnumbers", viewonly=True)
+
+
+class Connect(Base):
+    """
+    Существующая таблица connects — настройки подключения магазинов.
+    Здесь используется только для получения токена (пароля приложения Яндекс)
+    по адресу почты магазина, чтобы забрать код подтверждения по IMAP.
+    """
+    __tablename__ = "connects"
+
+    phone = Column(String(length=255), primary_key=True)
+    proxy = Column(String(length=255), nullable=False)
+    mail = Column(String(length=255), nullable=False)
+    token = Column(String(length=255), nullable=False)
+    pass_mail = Column(String(length=255), nullable=True)

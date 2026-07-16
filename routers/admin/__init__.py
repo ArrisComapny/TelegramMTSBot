@@ -3,6 +3,7 @@ from .add_employees_command import *
 from .add_mts_numbers_command import *
 from .employees_command import *
 from .mts_command import *
+from .code_command import code_router
 
 
 @admin_router.callback_query(~StateFilter(None))

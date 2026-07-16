@@ -11,14 +11,15 @@ from states.admin_states import AddEmployeeState, AddMTSNumberState
 
 from keyboards import *
 from config import ADMINS
-from filters.roles import RoleFilter
+from filters.roles import AdminFilter, has_code_access
 
 admin_router = Router(name="admin")
-admin_router.message.filter(RoleFilter(ADMINS))
+admin_router.message.filter(AdminFilter(ADMINS))
+admin_router.callback_query.filter(AdminFilter(ADMINS))
 
 
 @admin_router.message(CommandStart())
-async def admin_start(message: Message, bot: Bot, state: FSMContext):
+async def admin_start(message: Message, bot: Bot, state: FSMContext, session: AsyncSession):
     if state:
         data = await state.get_data()
         msg_id = data.get("source_message_id")
@@ -31,7 +32,9 @@ async def admin_start(message: Message, bot: Bot, state: FSMContext):
         await state.clear()
     await message.answer(
         text="🔹 <b>Админ-панель</b>\n\nВыберите нужный раздел:",
-        reply_markup=get_admin_keyboard(),
+        reply_markup=get_admin_keyboard(
+            has_code_access=await has_code_access(session, message.from_user.id),
+        ),
     )
 
 
@@ -50,10 +53,12 @@ async def admin_mts_numbers_callback(callback: types.CallbackQuery):
 
 
 @admin_router.callback_query(F.data == "admin_back", StateFilter(None))
-async def admin_back_callback(callback: types.CallbackQuery):
+async def admin_back_callback(callback: types.CallbackQuery, session: AsyncSession):
     await callback.message.edit_text(
         "🔹 <b>Админ-панель</b>\n\nВыберите нужный раздел:",
-        reply_markup=get_admin_keyboard(),
+        reply_markup=get_admin_keyboard(
+            has_code_access=await has_code_access(session, callback.from_user.id),
+        ),
     )
     await callback.answer()
 

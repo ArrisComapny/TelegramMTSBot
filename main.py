@@ -10,7 +10,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 
 from config import TOKEN, PROXY
-from routers.admin import admin_router
+from routers.admin import admin_router, code_router
 from routers.other import other_router
 from database.db import Database, Base
 from database.middlewares import DbSessionMiddleware
@@ -40,6 +40,7 @@ async def main() -> None:
     dp.update.outer_middleware(DbSessionMiddleware(db))
 
     dp.include_router(admin_router)
+    dp.include_router(code_router)
     dp.include_router(other_router)
 
     await bot.delete_webhook(drop_pending_updates=True)
